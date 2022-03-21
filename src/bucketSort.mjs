@@ -3,23 +3,44 @@ Conceptual description: Conceptual description: A distributed sorting algorithm 
 Time Complexity: Best: O(n + k), Worst: O(n^2)
 Space Complexity: O(n + k)
 */
+
+import { insertionSort } from './insertionSort.mjs'
+
 export const bucketSort = (array) => {
-    const min = Math.min(...array);
+
     const max = Math.max(...array);
-    const size = array.length;
+
+    // The idea for calculating the number of buckets comes from Quora: https://www.quora.com/How-do-I-calculate-the-optimal-number-of-buckets-when-implementing-bucket-sort-followed-by-insertion-sort
+    const numBuckets = Math.floor(Math.sqrt(max));
+
     const buckets = Array.from(
-        { length: Math.floor((max - min) / size) + 1 },
+        { length: numBuckets },
         () => []
     );
 
-    //It would be useful to uncomment this and then coment on why, given the input data ;)
-    //console.log('bucks', size, min, max, Math.floor((max - min) / size) + 1, buckets)
-
     array.forEach(val => {
-        buckets[Math.floor((val - min) / size)].push(val);
+      // index calc taken from https://en.wikipedia.org/wiki/Bucket_sort
+      const index = Math.floor(((numBuckets * (val - 1)) / max));
+      buckets[index].push(val);
     });
-    
-    return buckets.reduce((acc, b) => [...acc, ...b.sort((a, b) => a - b)], []);
+
+    //console.log('bucks 2', max, numBuckets, buckets)
+    /*
+    //standard for loop solution
+    let sortedArray = [];
+    buckets.forEach(bucket => {
+      const sorted = insertionSort(bucket);
+      sortedArray = [...sortedArray, ...sorted];
+    })
+    return sortedArray;
+    */
+
+    const sortedArray = buckets.reduce((accArray, bucket) => {
+      const sorted = insertionSort(bucket);
+      return [...accArray, ...sorted]
+    }, []);
+    return sortedArray;
+
+    //A succinct version of the same reducer logic as above, but calling internal sort
+    //return buckets.reduce((accArray, bucket) => [...accArray, ...bucket.sort((a, b) => a - b)], []);
 }
-
-
